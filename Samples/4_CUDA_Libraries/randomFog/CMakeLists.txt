@@ -19,9 +19,25 @@ endif()
 # Include directories and libraries
 include_directories(../../../Common)
 
+# Check for Debian13 or later
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    file(READ "/etc/os-release" OS_RELEASE_CONTENTS)
+    if(OS_RELEASE_CONTENTS MATCHES "ID=[^ ]*debian[^ ]*" AND
+       OS_RELEASE_CONTENTS MATCHES "VERSION_ID=\"(1[3-9]|[2-9][0-9])\"")
+        message(STATUS "Debian 13 or later detected")
+        set(DEBIAN TRUE)
+    endif()
+endif()
+
 if(WIN32)
     set(PC_GLUT_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../../../Common")
     set(PC_GLUT_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/lib/x64")
+    # The GLEW library built on Windows on Arm system is named as glew32.lib/glew32.dll by default.
+    if(EXISTS "${PC_GLUT_LIBRARY_DIRS}/glew32.lib")
+        set(GLEW_LIB_NAME "glew32")
+    else()
+        set(GLEW_LIB_NAME "glew64")
+    endif()
 endif()
 
 find_package(OpenGL)
@@ -51,6 +67,15 @@ if(${OpenGL_FOUND})
             CUDA::curand
             CUDA::cudart
         )
+        # Need to add X11 and other libraries for Debian13 or later explicitly
+        if(DEBIAN)
+            target_link_libraries(randomFog
+                X11
+                Xi
+                Xxf86vm
+                Xext
+            )
+        endif()
 
         # Copy data files to the output directory
         add_custom_command(TARGET randomFog POST_BUILD
@@ -62,7 +87,7 @@ if(${OpenGL_FOUND})
         if(WIN32)
             target_link_libraries(randomFog
                 ${PC_GLUT_LIBRARY_DIRS}/freeglut.lib
-                ${PC_GLUT_LIBRARY_DIRS}/glew64.lib
+                ${PC_GLUT_LIBRARY_DIRS}/${GLEW_LIB_NAME}.lib
             )
 
             add_custom_command(TARGET randomFog
@@ -75,7 +100,7 @@ if(${OpenGL_FOUND})
             add_custom_command(TARGET randomFog
                 POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/win64/$<CONFIGURATION>/glew64.dll
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/win64/$<CONFIGURATION>/${GLEW_LIB_NAME}.dll
                 ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>
             )
         endif()
@@ -86,3 +111,7 @@ if(${OpenGL_FOUND})
 else()
     message(STATUS "OpenGL not found - will not build sample 'randomFog'")
 endif()
+
+# Include installation configuration
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/InstallSamples.cmake)
+setup_samples_install()

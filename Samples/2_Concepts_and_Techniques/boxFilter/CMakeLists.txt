@@ -22,6 +22,12 @@ include_directories(../../../Common)
 if(WIN32)
     set(PC_GLUT_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../../../Common")
     set(PC_GLUT_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/lib/x64")
+    # The GLEW library built on Windows on Arm system is named as glew32.lib/glew32.dll by default.
+    if(EXISTS "${PC_GLUT_LIBRARY_DIRS}/glew32.lib")
+        set(GLEW_LIB_NAME "glew32")
+    else()
+        set(GLEW_LIB_NAME "glew64")
+    endif()
 endif()
 
 find_package(OpenGL)
@@ -52,29 +58,15 @@ if(${OpenGL_FOUND})
 
         # Copy data files to output directory
         add_custom_command(TARGET boxFilter POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/data/teapot1024.ppm
-            ${CMAKE_CURRENT_BINARY_DIR}/
-        )
-
-        # Copy data files to output directory
-        add_custom_command(TARGET boxFilter POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/data/ref_14.ppm
-            ${CMAKE_CURRENT_BINARY_DIR}/
-        )
-
-        # Copy data files to output directory
-        add_custom_command(TARGET boxFilter POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_CURRENT_SOURCE_DIR}/data/ref_22.ppm
-            ${CMAKE_CURRENT_BINARY_DIR}/
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/data
+            ${CMAKE_CURRENT_BINARY_DIR}/data
         )
 
         if(WIN32)
             target_link_libraries(boxFilter
                 ${PC_GLUT_LIBRARY_DIRS}/freeglut.lib
-                ${PC_GLUT_LIBRARY_DIRS}/glew64.lib
+                ${PC_GLUT_LIBRARY_DIRS}/${GLEW_LIB_NAME}.lib
             )
 
             add_custom_command(TARGET boxFilter
@@ -87,7 +79,7 @@ if(${OpenGL_FOUND})
             add_custom_command(TARGET boxFilter
                 POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/win64/$<CONFIGURATION>/glew64.dll
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin/win64/$<CONFIGURATION>/${GLEW_LIB_NAME}.dll
                 ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>
             )
         endif()
@@ -98,3 +90,7 @@ if(${OpenGL_FOUND})
 else()
     message(STATUS "OpenGL not found - will not build sample 'boxFilter'")
 endif()
+
+# Include installation configuration
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/InstallSamples.cmake)
+setup_samples_install()

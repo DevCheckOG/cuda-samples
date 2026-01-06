@@ -1,6 +1,6 @@
 # CUDA Samples
 
-Samples for CUDA Developers which demonstrates features in CUDA Toolkit. This version supports [CUDA Toolkit 13.0](https://developer.nvidia.com/cuda-downloads).
+Samples for CUDA Developers which demonstrates features in CUDA Toolkit. This version supports [CUDA Toolkit 13.1](https://developer.nvidia.com/cuda-downloads).
 
 ## Release Notes
 
@@ -142,8 +142,8 @@ $ cmake .. -DBUILD_TEGRA=True \
   -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc \
   -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchains/toolchain-aarch64-linux.cmake \
   -DTARGET_FS=/drive/temp \
-  -DCMAKE_LIBRARY_PATH=/drive/temp/usr/local/cuda-13.0/thor/lib64/ \
-  -DCMAKE_INCLUDE_PATH=/drive/temp/usr/local/cuda-13.0/thor/include/
+  -DCMAKE_LIBRARY_PATH=/drive/temp/usr/local/cuda-13.1/thor/lib64/ \
+  -DCMAKE_INCLUDE_PATH=/drive/temp/usr/local/cuda-13.1/thor/include/
 ```
 
 Please note that the following libraries are not pre-installed in the DriveOS dev-nsr target filesystem:
@@ -194,6 +194,72 @@ To build samples with new CUDA Toolkit(CUDA 13.0 or later) and UMD(Version 580 o
 ```
 cmake -DCMAKE_PREFIX_PATH=/usr/local/cuda/lib64/stubs/ ..
 ```
+
+## Install Samples
+
+### Installation Path Structure
+
+The installation system automatically organizes samples into a structured directory layout based on:
+- **Target Architecture**: ${CMAKE_SYSTEM_PROCESSOR}, e.g. `x64`, `aarch64`, `amd64`, etc.
+- **Target OS**: `linux`, `windows`, `darwin`, `qnx`
+- **Build Type**: `release`, `debug`, etc.
+
+The default installation path is: `build/bin/${TARGET_ARCH}/${TARGET_OS}/${BUILD_TYPE}`
+
+**Examples:**
+- Linux x86_64 Release: `build/bin/x64/linux/release`
+- Linux aarch64 Release: `build/bin/aarch64/linux/release`
+- Windows amd64 Release: `build/bin/amd64/windows/release`
+
+### Customizing Installation Paths
+
+You can customize the installation location using CMake variables during the configuration step:
+
+- `CMAKE_INSTALL_PREFIX`: Changes the root installation directory (default: `build/bin`)
+  ```
+  cmake -DCMAKE_INSTALL_PREFIX=/custom/path ..
+  ```
+  This will install to: `/custom/path/${TARGET_ARCH}/${TARGET_OS}/${BUILD_TYPE}`
+
+- `CUDA_SAMPLES_INSTALL_DIR`: Specifies the exact final installation directory (overrides the structured path)
+  ```
+  cmake -DCUDA_SAMPLES_INSTALL_DIR=/exact/install/path ..
+  ```
+
+### Install Samples on Linux
+
+**Prerequisites:** You must first configure the project with CMake as described in the [Building CUDA Samples - Linux](#linux) or [Building]section.
+
+After configuring and building, install the samples:
+
+```
+cd build/
+make install
+```
+
+### Install Samples on Windows
+
+**Prerequisites:** You must first configure the project with CMake as described in the [Building CUDA Samples - Windows](#windows) section.
+
+#### Using Command Line
+
+After configuring with CMake, build and install from the `x64 Native Tools Command Prompt for VS`:
+
+```cmd
+cd build
+cmake --build . --config Release
+cmake --install . --config Release
+```
+
+**Note:** Replace `Release` with `Debug` if you want to install debug builds. For multi-configuration generators (like Visual Studio), the `--config` flag determines which build type to install.
+
+#### Using Visual Studio IDE
+
+Alternatively, open the generated solution file `CUDA_Samples.sln` in Visual Studio:
+1. Select the desired configuration (`Release` or `Debug`)
+2. Build the solution (F7 or Build > Build Solution)
+3. Right-click on the `INSTALL` target under `CMakePredefinedTargets` in Solution Explorer
+4. Select "Build"
 
 ## Running All Samples as Tests
 
@@ -383,6 +449,9 @@ Samples that demonstrate performance optimization.
 ### [7. libNVVM](./Samples/7_libNVVM/README.md)
 Samples that demonstrate the use of libNVVVM and NVVM IR.
 
+### [8. Platform Specific](./Samples/8_Platform_Specific/Tegra/README.md)
+Samples that are specific to certain platforms (Tegra, cuDLA, NvMedia, NvSci, OpenGL ES).
+
 ## Dependencies
 
 Some CUDA Samples rely on third-party applications and/or libraries, or features provided by the CUDA Toolkit and Driver, to either build or execute. These dependencies are listed below.
@@ -425,11 +494,20 @@ OpenGL is a graphics library used for 2D and 3D rendering. On systems which supp
 
 OpenGL ES is an embedded systems graphics library used for 2D and 3D rendering. On systems which support OpenGL ES, NVIDIA's OpenGL ES implementation is provided with the CUDA Driver.
 
+#### Freeglut
+
+Freeglut is an open-source software library that serves as a replacement for the original OpenGL Utility Toolkit (GLUT). Its primary purpose is to make it easier for developers to create and manage windows containing OpenGL contexts, as well as handle input from devices like the mouse, keyboard, and joystick, across a wide range of platforms. To set up Freeglut on a Windowson on ARM system, you need to download the source from [Freeglut website](https://freeglut.sourceforge.net/), build freeglut on your system, and copy the freeglut.lib into the folder `./Common/lib/x64` and copy the freeglut.dll file into the `./bin/win64/${BUILD_TYPE}` execution folder.
+
 #### Vulkan
 
 Vulkan is a low-overhead, cross-platform 3D graphics and compute API. Vulkan targets high-performance realtime 3D graphics applications such as video games and interactive media across all platforms. On systems which support Vulkan, NVIDIA's Vulkan implementation is provided with the CUDA Driver. For building and running Vulkan applications one needs to install the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/).
 
+#### GLEW
+
+GLEW (OpenGL Extension Wrangler Library) is a cross-platform, open-source C/C++ library designed to simplify the process of using modern OpenGL features and extensions. Its main function is to dynamically load OpenGL function pointers at runtime, allowing developers to access both core OpenGL functions and additional features provided by hardware vendors, known as extensions. To set up GLEW on a Windows on ARM system, you need to download the source from [GLEW website](https://glew.sourceforge.net/), build GLEW on your system, and copy the glew32.lib into the folder `./Common/lib/x64` and the glew32.dll into the `./bin/win64/${BUILD_TYPE}` execution folder.
+
 #### GLFW
+
 GLFW is a lightweight, open-source library designed for managing OpenGL, OpenGL ES, and Vulkan contexts. It simplifies the process of creating and managing windows, handling user input (keyboard, mouse, and joystick), and working with multiple monitors in a cross-platform manner.
 
 To set up GLFW on a Windows system, Download the pre-built binaries from [GLFW website](https://www.glfw.org/download.html) and extract the zip file into the folder, pass the GLFW include header folder as `-DGLFW_INCLUDE_DIR` and lib folder as `-DGLFW_LIB_DIR` for cmake configuring.
