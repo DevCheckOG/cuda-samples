@@ -247,6 +247,7 @@ int CleanupNoFailure()
         free(h_C);
     }
 
+    checkCudaErrors(cuModuleUnload(cuModule));
     checkCudaErrors(cuCtxDestroy(cuContext));
 
     return EXIT_SUCCESS;

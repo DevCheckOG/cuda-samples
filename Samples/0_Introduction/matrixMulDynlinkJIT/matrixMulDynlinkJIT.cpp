@@ -68,6 +68,7 @@ extern "C" void computeGold(float *, const float *, const float *, unsigned int,
 // Globals
 ////////////////////////////////////////////////////////////////////////////////
 CUcontext g_cuContext;
+CUmodule  g_cuModule;
 bool      noprompt = false;
 
 static const char *sSDKsample = "matrixMulDynlinkJIT (CUDA dynamic linking)";
@@ -90,7 +91,6 @@ CUresult initCUDA(int argc, char **argv, CUfunction *pMatrixMul, int *block_size
 {
     CUresult   status;
     CUdevice   cuDevice;
-    CUmodule   cuModule;
     CUfunction cuFunction;
     int        major, minor, block_size, devID = 0;
     char       deviceName[256];
@@ -185,10 +185,10 @@ CUresult initCUDA(int argc, char **argv, CUfunction *pMatrixMul, int *block_size
 
 #if defined(_WIN64) || defined(__LP64__)
         status =
-            cuModuleLoadDataEx(&cuModule, matrixMul_kernel_64_ptxdump, jitNumOptions, jitOptions, (void **)jitOptVals);
+            cuModuleLoadDataEx(&g_cuModule, matrixMul_kernel_64_ptxdump, jitNumOptions, jitOptions, (void **)jitOptVals);
 #else
         status =
-            cuModuleLoadDataEx(&cuModule, matrixMul_kernel_32_ptxdump, jitNumOptions, jitOptions, (void **)jitOptVals);
+            cuModuleLoadDataEx(&g_cuModule, matrixMul_kernel_32_ptxdump, jitNumOptions, jitOptions, (void **)jitOptVals);
 #endif
 
         printf("> PTX JIT log:\n%s\n", jitLogBuffer);
@@ -206,9 +206,10 @@ CUresult initCUDA(int argc, char **argv, CUfunction *pMatrixMul, int *block_size
 
     // retrieve CUDA function from the compiled module
     status = cuModuleGetFunction(
-        &cuFunction, cuModule, (block_size == 16) ? "matrixMul_bs16_32bit" : "matrixMul_bs32_32bit");
+        &cuFunction, g_cuModule, (block_size == 16) ? "matrixMul_bs16_32bit" : "matrixMul_bs32_32bit");
 
     if (CUDA_SUCCESS != status) {
+        cuModuleUnload(g_cuModule);
         cuCtxDestroy(g_cuContext);
         exit(EXIT_FAILURE);
     }
@@ -337,6 +338,7 @@ int main(int argc, char **argv)
     checkCudaErrors(cuMemFree(d_A));
     checkCudaErrors(cuMemFree(d_B));
     checkCudaErrors(cuMemFree(d_C));
+    checkCudaErrors(cuModuleUnload(g_cuModule));
     checkCudaErrors(cuCtxDestroy(g_cuContext));
 
     printf("Test run %s\n", (1 == res) ? "success!" : "failed!");
