@@ -255,6 +255,7 @@ void runTest(int argc, char **argv)
     checkCudaErrors(cuMemFree(d_A));
     checkCudaErrors(cuMemFree(d_B));
     checkCudaErrors(cuMemFree(d_C));
+    checkCudaErrors(cuModuleUnload(cuModule));
     checkCudaErrors(cuCtxDestroy(cuContext));
 }
 

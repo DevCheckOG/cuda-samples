@@ -419,6 +419,7 @@ static void childProcess(int devId, int id, char **argv)
 
     // Clean up!
     checkCudaErrors(cuStreamDestroy(stream));
+    checkCudaErrors(cuModuleUnload(cuModule));
     checkCudaErrors(cuCtxDestroy(ctx));
 
     // Unmap the allocations from our address space. Unmapping will also free the
