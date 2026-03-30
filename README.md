@@ -1,6 +1,6 @@
 # CUDA Samples
 
-Samples for CUDA Developers which demonstrates features in CUDA Toolkit. This version supports [CUDA Toolkit 13.1](https://developer.nvidia.com/cuda-downloads).
+Samples for CUDA Developers which demonstrates features in CUDA Toolkit. This version supports [CUDA Toolkit 13.2](https://developer.nvidia.com/cuda-downloads).
 
 ## Release Notes
 
@@ -604,6 +604,11 @@ NVJPEG library provides high-performance, GPU accelerated JPEG decoding function
 
 NVRTC (CUDA RunTime Compilation) is a runtime compilation library for CUDA C++.
 
+#### NVJITLINK
+
+NVJITLINK is a CUDA runtime library that links multiple GPU device code objects at runtime and enables just‑in‑time link‑time optimization (JIT LTO).
+It can take device code from tools such as NVCC and NVRTC, link and optimize it on the fly, and produce the final GPU binary.For more details, see: https://docs.nvidia.com/cuda/nvjitlink/index.html
+
 #### Stream Priorities
 
 Stream Priorities allows the creation of streams with specified priorities. Stream Priorities is only available on GPUs with SM architecture of 3.5 or above.
@@ -636,7 +641,7 @@ Answers to frequently asked questions about CUDA can be found at http://develope
 
 ## References
 
-*   [CUDA Programming Guide](http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html)
+*   [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html)
 *   [Accelerated Computing Blog](https://developer.nvidia.com/blog/?tags=accelerated-computing)
 
 ## Attributions

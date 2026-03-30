@@ -297,6 +297,7 @@ void runTest(int argc, char **argv)
     free(image_path);
     free(ref_path);
 
+    checkCudaErrors(cuModuleUnload(cuModule));
     checkCudaErrors(cuCtxDestroy(cuContext));
 
     exit(bTestResults ? EXIT_SUCCESS : EXIT_FAILURE);
